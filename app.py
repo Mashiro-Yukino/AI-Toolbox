@@ -1,78 +1,163 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 19 21:09:58 2023
-
-@author: mu
-"""
-
-# Import the required libraries and modules
-import tkinter as tk
-from tkinter import ttk
-from gpt3_module import generate_text as generate_text_gpt3
-from myai_module import generate_text as generate_text_myai
-
-# Define the main AI_Toolbox class, which inherits from tk.Tk
+from PyQt5.QtWidgets import QVBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTextEdit
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton
+from PyQt5.QtCore import Qt
+from config import AI_tools
+import webbrowser
+from gpt3_module import generate_text
 
 
-class AI_Toolbox(tk.Tk):
+class CoverPage(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Set the window title and size
-        self.title("AI Toolbox")
-        self.geometry("600x400")
+        self.setWindowTitle("AI Toolbox Cover Page")
+        self.resize(300, 200)
 
-        # Create and display the widgets in the window
-        self.create_widgets()
+        self.initUI()
 
-    # Method to create and display widgets
-    def create_widgets(self):
-        # Create and display the "Enter your prompt" label
-        self.prompt_label = ttk.Label(self, text="Enter your prompt:")
-        self.prompt_label.pack(pady=10)
+    def initUI(self):
+        layout = QVBoxLayout()
 
-        # Create and display the prompt entry field
-        self.prompt_entry = ttk.Entry(self, width=50)
-        self.prompt_entry.pack(pady=10)
+        self.type_label = QLabel("Select a tool type:")
+        layout.addWidget(self.type_label)
 
-        # Create and display the "Generate Text" button
-        self.submit_button = ttk.Button(
-            self, text="Generate Text", command=self.generate_text_from_gpt3)
-        self.submit_button.pack(pady=10)
+        self.type_combobox = QComboBox()
+        self.type_combobox.addItems(
+            list(set([tool["type"] for tool in AI_tools])))
+        layout.addWidget(self.type_combobox)
 
-        self.submit_button_myai = ttk.Button(
-            self, text="Generate Text (MyAI)", command=self.generate_text_from_myai)
-        self.submit_button_myai.pack(pady=10)
+        self.submit_button = QPushButton("Submit")
+        self.submit_button.clicked.connect(self.open_toolbox)
+        layout.addWidget(self.submit_button)
 
-        # Create and display the "Generated Text" label
-        self.result_label = ttk.Label(self, text="Generated Text:")
-        self.result_label.pack(pady=10)
+        self.setLayout(layout)
 
-        # Create and display the text area to show the generated text
-        self.result_text = tk.Text(self, wrap=tk.WORD, width=50, height=10)
-        self.result_text.pack(pady=10)
+    def open_toolbox(self):
+        selected_type = self.type_combobox.currentText()
 
-    # Method to generate text using GPT-3 and display it in the result_text widget
-    def generate_text_from_gpt3(self):
-        # Get the input prompt from the entry field
-        prompt = self.prompt_entry.get()
-
-        # Call the generate_text function from gpt3_module to get the generated text
-        generated_text = generate_text(prompt)
-
-        # Clear the result_text widget and insert the generated text
-        self.result_text.delete(1.0, tk.END)
-        self.result_text.insert(tk.END, generated_text)
-
-    def generate_text_from_myai(self):
-        prompt = self.prompt_entry.get()
-        generated_text = generate_text_myai(prompt)
-        self.result_text.delete(1.0, tk.END)
-        self.result_text.insert(tk.END, generated_text)
+        if selected_type == "API":
+            self.api_toolbox = API_Toolbox()
+            self.api_toolbox.show()
+            self.close()
+        elif selected_type == "Web":
+            self.web_toolbox = Web_Toolbox()
+            self.web_toolbox.show()
+            self.close()
 
 
-# Run the AI_Toolbox application
+class API_Toolbox(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("API Toolbox")
+        self.resize(600, 400)
+
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+
+        self.tool_label = QLabel("Select an API tool:")
+        layout.addWidget(self.tool_label)
+
+        self.tool_combobox = QComboBox()
+        tools_by_type = [tool["name"]
+                         for tool in AI_tools if tool["type"] == "API"]
+        self.tool_combobox.addItems(tools_by_type)
+        layout.addWidget(self.tool_combobox)
+
+        self.prompt_label = QLabel("Enter your prompt:")
+        layout.addWidget(self.prompt_label)
+
+        self.prompt_entry = QLineEdit()
+        layout.addWidget(self.prompt_entry)
+
+        self.submit_button = QPushButton("Generate Text")
+        self.submit_button.clicked.connect(self.generate_text_from_tool)
+        layout.addWidget(self.submit_button)
+
+        self.result_label = QLabel("Generated Text:")
+        layout.addWidget(self.result_label)
+
+        self.result_text = QTextEdit()
+        self.result_text.setReadOnly(True)
+        layout.addWidget(self.result_text)
+
+        self.back_button = QPushButton("Back")
+        self.back_button.clicked.connect(self.go_back_to_cover)
+        layout.addWidget(self.back_button)
+
+        self.setLayout(layout)
+
+    def generate_text_from_tool(self):
+        selected_tool = self.tool_combobox.currentText()
+
+        for tool in AI_tools:
+            if tool["name"] == selected_tool:
+                if tool["type"] == "API":
+                    module = __import__(tool["module_name"])
+                    generate_text_function = getattr(module, tool["function_name"])
+
+                    prompt = self.prompt_entry.text()
+                    generated_text = generate_text_function(prompt)
+
+                    self.result_text.setPlainText(generated_text)
+
+    def go_back_to_cover(self):
+        self.close()
+        self.cover_page = CoverPage()
+        self.cover_page.show()
+
+
+
+class Web_Toolbox(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Web Toolbox")
+        self.resize(600, 400)
+
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+
+        self.tool_label = QLabel("Select a Web tool:")
+        layout.addWidget(self.tool_label)
+
+        self.tool_combobox = QComboBox()
+        tools_by_type = [tool["name"]
+                         for tool in AI_tools if tool["type"] == "Web"]
+        self.tool_combobox.addItems(tools_by_type)
+        layout.addWidget(self.tool_combobox)
+
+        self.open_link_button = QPushButton("Open Link")
+        self.open_link_button.clicked.connect(self.open_link_for_tool)
+        layout.addWidget(self.open_link_button)
+
+        self.back_button = QPushButton("Back")
+        self.back_button.clicked.connect(self.go_back_to_cover)
+        layout.addWidget(self.back_button)
+
+        self.setLayout(layout)
+
+    def open_link_for_tool(self):
+        selected_tool = self.tool_combobox.currentText()
+
+        for tool in AI_tools:
+            if tool["name"] == selected_tool:
+                if tool["type"] == "Web":
+                    webbrowser.open(tool["website"])
+
+    def go_back_to_cover(self):
+        self.close()
+        self.cover_page = CoverPage()
+        self.cover_page.show()
+
+
 if __name__ == "__main__":
-    app = AI_Toolbox()
-    app.mainloop()
+    app = QApplication(sys.argv)
+    cover_page = CoverPage()
+    cover_page.show()
+    sys.exit(app.exec_())
