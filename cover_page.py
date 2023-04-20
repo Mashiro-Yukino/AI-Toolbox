@@ -7,14 +7,13 @@ Created on Thu Apr 20 06:03:09 2023
 """
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QLabel, QScrollArea, QWidget, QDialog
-from PyQt5.QtCore import Qt
 from api_toolbox import API_Toolbox
-from config import AI_tools
-from collections import defaultdict
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
+from PyQt5.QtWidgets import QInputDialog, QMessageBox
+from task_helper import TaskHelper
 from web_toolbox import Web_Toolbox
 from clustering_result_dialog import ClusteringResultDialog
+import openai
+from config import API_KEYS
 
 
 class CoverPage(QMainWindow):
@@ -45,6 +44,10 @@ class CoverPage(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
+        self.task_helper_button = QPushButton("Task Helper")
+        self.task_helper_button.clicked.connect(self.open_task_helper)
+        layout.addWidget(self.task_helper_button)
+
     def open_api_toolbox(self):
         self.close()
         self.api_toolbox = API_Toolbox()
@@ -57,6 +60,23 @@ class CoverPage(QMainWindow):
     def open_clustering_result(self):
         self.clustering_result_dialog = ClusteringResultDialog(self)
         self.clustering_result_dialog.show()
+
+    def open_task_helper(self):
+        task_description, ok = QInputDialog.getText(
+            self, "Task Helper", "Enter the task you want to perform:")
+
+        if ok and task_description:
+            task_helper = TaskHelper(task_description)
+            steps_and_tools = task_helper.get_steps_and_tools()
+
+            message = ""
+            for idx, step_with_tools in enumerate(steps_and_tools, 1):
+                message += f"Step {idx}: {step_with_tools['step']}\nAI Tools:\n"
+                for tool in step_with_tools["tools"]:
+                    message += f"  - {tool['name']}\n"
+                message += "\n"
+
+            QMessageBox.information(self, "Task Helper Results", message)
 
 
 if __name__ == "__main__":
