@@ -12,6 +12,8 @@ from PyQt5.QtWidgets import QInputDialog, QMessageBox
 from task_helper import TaskHelper
 from web_toolbox import Web_Toolbox
 from clustering_result_dialog import ClusteringResultDialog
+from add_tool_dialog import AddToolDialog
+from manage_tools import ManageToolsDialog
 
 
 class CoverPage(QMainWindow):
@@ -46,6 +48,16 @@ class CoverPage(QMainWindow):
         self.task_helper_button.clicked.connect(self.open_task_helper)
         layout.addWidget(self.task_helper_button)
 
+        # In the CoverPage class, add the following lines in the constructor
+        self.add_tool_button = QPushButton("Add Tool")
+        self.add_tool_button.clicked.connect(self.open_add_tool_dialog)
+        layout.addWidget(self.add_tool_button)
+
+        self.manage_tools_button = QPushButton("Manage AI Tools", self)
+        self.manage_tools_button.clicked.connect(self.open_manage_tools_dialog)
+        self.manage_tools_button.setGeometry(250, 300, 200, 40)
+        layout.addWidget(self.manage_tools_button)
+
     def open_api_toolbox(self):
         self.close()
         self.api_toolbox = API_Toolbox()
@@ -75,6 +87,15 @@ class CoverPage(QMainWindow):
                 message += "\n"
 
             QMessageBox.information(self, "Task Helper Results", message)
+
+    # Add the open_add_tool_dialog method to the CoverPage class
+    def open_add_tool_dialog(self):
+        add_tool_dialog = AddToolDialog(self)
+        add_tool_dialog.exec_()
+
+    def open_manage_tools_dialog(self):
+        self.manage_tools_dialog = ManageToolsDialog()
+        self.manage_tools_dialog.exec_()
 
 
 if __name__ == "__main__":

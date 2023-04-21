@@ -39,7 +39,7 @@ class ClusteringResultDialog(QDialog):
                 tool_label = QLabel(f"  - {tool['name']}")
                 tool_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
                 tool_label.setOpenExternalLinks(True)
-                if tool["type"] == "Web":
+                if "Web" in tool["keywords"]:
                     tool_label.setText(
                         f'  - <a href="{tool["website"]}">{tool["name"]}</a>')
                 else:
@@ -63,7 +63,8 @@ class ClusteringResultDialog(QDialog):
         layout.addWidget(scroll)
 
     def cluster_ai_tools(self, ai_tools):
-        text_data = [tool["name"] + " " + tool["type"] for tool in ai_tools]
+        text_data = [tool["name"] + " " +
+                     " ".join(tool["keywords"]) for tool in ai_tools]
 
         vectorizer = TfidfVectorizer()
         X = vectorizer.fit_transform(text_data)
