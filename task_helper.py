@@ -6,22 +6,19 @@ Created on Thu Apr 20 12:02:46 2023
 @author: mu
 """
 
-import openai
 from config import AI_tools
-# Import the required libraries and modules
 import openai
 from config import API_KEYS
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-# Set the API key for the OpenAI library
-openai_api_key = API_KEYS['openai']
-
-
 class TaskHelper:
     def __init__(self, task_description):
         self.task_description = task_description
+
+        # Set the API key for the OpenAI library
+        openai.api_key = API_KEYS['openai']
 
     def get_steps_and_tools(self):
         steps = self.generate_steps_with_gpt3()

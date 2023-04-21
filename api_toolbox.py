@@ -11,7 +11,6 @@ Created on Thu Apr 20 06:03:09 2023
 
 from PyQt5.QtWidgets import QVBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QTextEdit, QWidget
 from config import AI_tools
-from gpt3_module import generate_text
 import importlib
 
 

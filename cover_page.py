@@ -12,8 +12,6 @@ from PyQt5.QtWidgets import QInputDialog, QMessageBox
 from task_helper import TaskHelper
 from web_toolbox import Web_Toolbox
 from clustering_result_dialog import ClusteringResultDialog
-import openai
-from config import API_KEYS
 
 
 class CoverPage(QMainWindow):
