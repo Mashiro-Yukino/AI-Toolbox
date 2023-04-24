@@ -7,71 +7,14 @@ Created on Thu Apr 20 06:03:56 2023
 """
 
 
+from PyQt5.QtCore import Qt
 from config import fetch_tools
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout,
-                             QScrollArea, QWidget, QLabel)
-from PyQt5.QtWidgets import QVBoxLayout, QLabel, QComboBox, QPushButton, QWidget
 import webbrowser
 import importlib
+from PyQt5.QtWidgets import QPushButton
 
-
-# class Web_Toolbox(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#
-#         self.setWindowTitle("Web Toolbox")
-#         self.resize(600, 400)
-#
-#         self.initUI()
-#
-#     def initUI(self):
-#         layout = QVBoxLayout()
-#
-#         self.tool_label = QLabel("Select a Web tool:")
-#         layout.addWidget(self.tool_label)
-#
-#         self.tool_combobox = QComboBox()
-#         tools_by_type = [tool["name"]
-#                          for tool in AI_tools if tool["type"] == "Web"]
-#         self.tool_combobox.addItems(tools_by_type)
-#         layout.addWidget(self.tool_combobox)
-#
-#         self.open_link_button = QPushButton("Open Link")
-#         self.open_link_button.clicked.connect(self.open_link_for_tool)
-#         layout.addWidget(self.open_link_button)
-#
-#         self.back_button = QPushButton("Back")
-#         self.back_button.clicked.connect(self.go_back_to_cover)
-#         layout.addWidget(self.back_button)
-#
-#         self.setLayout(layout)
-#
-#     def open_link_for_tool(self):
-#         selected_tool = self.tool_combobox.currentText()
-#
-#         for tool in AI_tools:
-#             if tool["name"] == selected_tool:
-#                 if tool["type"] == "Web":
-#                     webbrowser.open(tool["website"])
-#
-#     def go_back_to_cover(self):
-#         self.close()
-#         CoverPage = importlib.import_module("cover_page").CoverPage
-#         self.cover_page = CoverPage()
-#         self.cover_page.show()
-
-
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QScrollArea, QWidget
-import sqlite3  # Add this line at the beginning of the file
-
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 20 06:03:09 2023
-
-@author: mu
-"""
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QScrollArea, QWidget
+import sqlite3
 
 
 class Web_Toolbox(QMainWindow):
@@ -89,9 +32,20 @@ class Web_Toolbox(QMainWindow):
         layout = QVBoxLayout()
 
         for tool in tools:
-            tool_label = QLabel(f"{tool['name']}: {tool['website']}")
+            tool_label = QLabel(
+                f'<a href="{tool["website"]}">{tool["name"]}</a>')
+            tool_label.setOpenExternalLinks(True)
+            tool_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+            tool_label.setWordWrap(True)
 
             layout.addWidget(tool_label)
+
+        # Add the Back button
+        self.back_button = QPushButton("Back")
+        self.back_button.clicked.connect(self.close)
+        # Set the button color to blue
+        self.back_button.setStyleSheet("background-color: blue; color: white")
+        layout.addWidget(self.back_button)
 
         scroll_widget = QWidget()
         scroll_widget.setLayout(layout)
