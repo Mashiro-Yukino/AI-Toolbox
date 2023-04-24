@@ -1,12 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 20 12:02:46 2023
-
-@author: mu
-"""
-
-from config import AI_tools
+from config import fetch_tools
 import openai
 from config import API_KEYS
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -47,9 +39,10 @@ class TaskHelper:
 
     def find_relevant_tools(self, step):
         relevant_tools = []
+        AI_tools = fetch_tools()
 
         # Combine keywords of each tool into a single string
-        tools_keywords = [' '.join(tool["keywords"]) for tool in AI_tools]
+        tools_keywords = [' '.join(tool[3]) for tool in AI_tools]
 
         # Add the step as the first element in the list
         tools_keywords.insert(0, step)
