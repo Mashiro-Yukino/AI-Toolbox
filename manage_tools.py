@@ -16,8 +16,8 @@ class ManageToolsDialog(QDialog):
     def initUI(self):
         layout = QVBoxLayout()
 
-        ai_tools = self.get_ai_tools()
-        for tool in ai_tools:
+        self.ai_tools = self.get_ai_tools()
+        for tool in self.ai_tools:
             tool_layout = QHBoxLayout()
             tool_layout.addWidget(QLabel(f"ID: {tool['id']}"))
             tool_layout.addWidget(QLabel(tool['name']))
@@ -26,6 +26,9 @@ class ManageToolsDialog(QDialog):
             layout.addLayout(tool_layout)
 
         form_layout = QFormLayout()
+
+        self.tool_id_input = QLineEdit()
+        form_layout.addRow("Tool ID (for modify/delete):", self.tool_id_input)
 
         self.name_input = QLineEdit()
         form_layout.addRow("Name:", self.name_input)
@@ -43,6 +46,14 @@ class ManageToolsDialog(QDialog):
         add_tool_button = QPushButton("Add AI Tool")
         add_tool_button.clicked.connect(self.add_ai_tool)
         layout.addWidget(add_tool_button)
+
+        modify_tool_button = QPushButton("Modify AI Tool")
+        modify_tool_button.clicked.connect(self.modify_ai_tool)
+        layout.addWidget(modify_tool_button)
+
+        delete_tool_button = QPushButton("Delete AI Tool")
+        delete_tool_button.clicked.connect(self.delete_ai_tool)
+        layout.addWidget(delete_tool_button)
 
         self.setLayout(layout)
 
@@ -76,6 +87,42 @@ class ManageToolsDialog(QDialog):
         c = conn.cursor()
         c.execute("INSERT INTO ai_tools (name, type, keywords) VALUES (?, ?, ?)",
                   (name, tool_type, ', '.join(keywords)))
+        conn.commit()
+        conn.close()
+
+        self.accept()
+
+    def modify_ai_tool(self):
+        tool_id = self.tool_id_input.text().strip()
+        name = self.name_input.text().strip()
+        tool_type = self.type_input.currentText()
+        keywords = self.keywords_input.text().strip().split(',')
+
+        if not tool_id or not name or not keywords:
+            QMessageBox.warning(self, "Incomplete Information",
+                                "Please fill in the required fields.")
+            return
+
+        conn = sqlite3.connect("ai_tools.db")
+        c = conn.cursor()
+        c.execute("UPDATE ai_tools SET name=?, type=?, keywords=? WHERE id=?",
+                  (name, tool_type, ', '.join(keywords), tool_id))
+        conn.commit()
+        conn.close()
+
+        self.accept()
+
+    def delete_ai_tool(self):
+        tool_id = self.tool_id_input.text().strip()
+
+        if not tool_id:
+            QMessageBox.warning(self, "Incomplete Information",
+                                "Please fill in the Tool ID field.")
+            return
+
+        conn = sqlite3.connect("ai_tools.db")
+        c = conn.cursor()
+        c.execute("DELETE FROM ai_tools WHERE id=?", (tool_id,))
         conn.commit()
         conn.close()
 
