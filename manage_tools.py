@@ -1,9 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QLineEdit, QComboBox, QFormLayout, QMessageBox
 import sqlite3
 from config import fetch_tools
-
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QLineEdit, QComboBox, QFormLayout, QMessageBox
 
 
 class ManageToolsDialog(QDialog):
@@ -17,13 +15,9 @@ class ManageToolsDialog(QDialog):
         layout = QVBoxLayout()
 
         self.ai_tools = self.get_ai_tools()
-        for tool in self.ai_tools:
-            tool_layout = QHBoxLayout()
-            tool_layout.addWidget(QLabel(f"ID: {tool['id']}"))
-            tool_layout.addWidget(QLabel(tool['name']))
-            tool_layout.addWidget(QLabel(tool['type']))
-            tool_layout.addWidget(QLabel(', '.join(tool['keywords'])))
-            layout.addLayout(tool_layout)
+        self.tools_layout = QVBoxLayout()
+        self.refresh_tools_layout()
+        layout.addLayout(self.tools_layout)
 
         form_layout = QFormLayout()
 
@@ -73,6 +67,29 @@ class ManageToolsDialog(QDialog):
         ]
         return ai_tools
 
+    def refresh_tools_layout(self):
+        self.ai_tools = self.get_ai_tools()
+
+        # Clear previous layout
+        while self.tools_layout.count():
+            child = self.tools_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+            elif child.layout():
+                while child.layout().count():
+                    sub_child = child.layout().takeAt(0)
+                    if sub_child.widget():
+                        sub_child.widget().deleteLater()
+
+        # Add updated AI tools
+        for tool in self.ai_tools:
+            tool_layout = QHBoxLayout()
+            tool_layout.addWidget(QLabel(f"ID: {tool['id']}"))
+            tool_layout.addWidget(QLabel(tool['name']))
+            tool_layout.addWidget(QLabel(tool['type']))
+            tool_layout.addWidget(QLabel(', '.join(tool['keywords'])))
+            self.tools_layout.addLayout(tool_layout)
+
     def add_ai_tool(self):
         name = self.name_input.text().strip()
         tool_type = self.type_input.currentText()
@@ -90,7 +107,8 @@ class ManageToolsDialog(QDialog):
         conn.commit()
         conn.close()
 
-        self.accept()
+        self.ai_tools = self.get_ai_tools()
+        self.refresh_tools_layout()
 
     def modify_ai_tool(self):
         tool_id = self.tool_id_input.text().strip()
@@ -110,7 +128,8 @@ class ManageToolsDialog(QDialog):
         conn.commit()
         conn.close()
 
-        self.accept()
+        self.ai_tools = self.get_ai_tools()
+        self.refresh_tools_layout()
 
     def delete_ai_tool(self):
         tool_id = self.tool_id_input.text().strip()
@@ -126,7 +145,8 @@ class ManageToolsDialog(QDialog):
         conn.commit()
         conn.close()
 
-        self.accept()
+        self.ai_tools = self.get_ai_tools()
+        self.refresh_tools_layout()
 
 
 if __name__ == "__main__":
@@ -134,3 +154,4 @@ if __name__ == "__main__":
     manage_tools_dialog = ManageToolsDialog()
     manage_tools_dialog.show()
     sys.exit(app.exec_())
+
