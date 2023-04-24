@@ -1,18 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 21 10:57:11 2023
-
-@author: mu
-"""
-
-
 import sys
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication
 import sqlite3
+from config import fetch_tools
 
-
-import sqlite3  # Add this line at the beginning of the file
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QLineEdit, QComboBox, QFormLayout, QMessageBox
 
 
@@ -57,21 +47,19 @@ class ManageToolsDialog(QDialog):
         self.setLayout(layout)
 
     def get_ai_tools(self):
-        conn = sqlite3.connect("ai_tools.db")
-        c = conn.cursor()
-        c.execute("SELECT * FROM ai_tools")
-        tools = c.fetchall()
-        conn.close()
-
-        ai_tools = []
-        for tool in tools:
-            ai_tool = {
-                "id": tool[0],
-                "name": tool[1],
-                "type": tool[2],
-                "keywords": tool[3].split(', ')
+        tools = fetch_tools("all")
+        ai_tools = [
+            {
+                "id": tool["id"],
+                "name": tool["name"],
+                "type": tool["type"],
+                "module_name": tool["module_name"],
+                "function_name": tool["function_name"],
+                "website": tool["website"],
+                "keywords": tool["keywords"].split(', ')
             }
-            ai_tools.append(ai_tool)
+            for tool in tools
+        ]
         return ai_tools
 
     def add_ai_tool(self):
