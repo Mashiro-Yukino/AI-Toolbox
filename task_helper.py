@@ -3,6 +3,8 @@ import openai
 from config import API_KEYS
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from nltk.corpus import stopwords
+import nltk
 
 
 class TaskHelper:
@@ -39,15 +41,24 @@ class TaskHelper:
 
     def find_relevant_tools(self, step):
         relevant_tools = []
-        AI_tools = fetch_tools()
+        AI_tools = fetch_tools("API")
+
+        # Remove stop words from tool keywords
+        stop_words = set(stopwords.words('english'))
+        for tool in AI_tools:
+            tool["keywords"] = [word for word in tool["keywords"].split() if word not in stop_words]
+            tool["keywords"] = ' '.join(tool["keywords"])
+
+        # Filter out tools with keywords that contain only stop words
+        AI_tools = [tool for tool in AI_tools if tool["keywords"]]
 
         # Combine keywords of each tool into a single string
-        tools_keywords = [' '.join(tool[3]) for tool in AI_tools]
+        tools_keywords = [tool["keywords"] for tool in AI_tools]
 
         # Add the step as the first element in the list
         tools_keywords.insert(0, step)
 
-        vectorizer = TfidfVectorizer()
+        vectorizer = TfidfVectorizer(stop_words='english')
         vectors = vectorizer.fit_transform(tools_keywords)
 
         # Calculate cosine similarity between the step and each tool
@@ -63,3 +74,4 @@ class TaskHelper:
             relevant_tools.append(AI_tools[index])
 
         return relevant_tools
+
